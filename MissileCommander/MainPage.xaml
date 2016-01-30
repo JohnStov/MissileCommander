@@ -15,5 +15,9 @@
             <!--For more details, see SetFacesCanvasRotation-->
             <Canvas Name="FacesCanvas" RenderTransformOrigin="0.5,0.5"/>
         </Canvas>
+        <Ellipse Width="20" Height="20" Fill="Red" VerticalAlignment="Center" HorizontalAlignment="Left" x:Name="Lefty" Visibility="Collapsed"></Ellipse>
+        <Ellipse Width="20" Height="20" Fill="Red" VerticalAlignment="Center" HorizontalAlignment="Right" x:Name="Righty" Visibility="Collapsed"></Ellipse>
+        <Ellipse Width="20" Height="20" Fill="Red" VerticalAlignment="Top" HorizontalAlignment="Center" x:Name="Toppy" Visibility="Collapsed"></Ellipse>
+        <Ellipse Width="20" Height="20" Fill="Red" VerticalAlignment="Bottom" HorizontalAlignment="Center" x:Name="Bottomy" Visibility="Collapsed"></Ellipse>
     </Grid>
 </Page>

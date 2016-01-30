@@ -132,9 +132,42 @@ namespace MissileCommander
                 // Highlight the first face in the set
                 faceBoundingBox.Stroke = (i == 0 ? new SolidColorBrush(Colors.Blue) : new SolidColorBrush(Colors.DeepSkyBlue));
 
+                if (i == 0)
+                    DrawMovementIndicators(FacesCanvas, faceBoundingBox);
+                
                 // Add grid to canvas containing all face UI objects
                 FacesCanvas.Children.Add(faceBoundingBox);
             }
+        }
+
+        private void DrawMovementIndicators(Canvas facesCanvas, Rectangle faceBoundingBox)
+        {
+            var previewStream = mediaCapture.VideoDeviceController.GetMediaStreamProperties(MediaStreamType.VideoPreview) as VideoEncodingProperties;
+            var previewInUI = GetPreviewStreamRectInControl(previewStream, PreviewControl);
+            var viewCentre = new Point(previewInUI.Width/2.0, previewInUI.Height/2.0);
+
+            var faceCentre = new Point(Canvas.GetLeft(faceBoundingBox) + faceBoundingBox.Width / 2,
+                     Canvas.GetTop(faceBoundingBox) + faceBoundingBox.Height / 2);
+
+            if (faceCentre.X < viewCentre.X - 5.0)
+                Righty.Visibility = Visibility.Visible;
+            else
+                Righty.Visibility = Visibility.Collapsed;
+
+            if (faceCentre.X > viewCentre.X + 5.0)
+                Lefty.Visibility = Visibility.Visible;
+            else
+                Lefty.Visibility = Visibility.Collapsed;
+
+            if (faceCentre.Y < viewCentre.Y - 5.0)
+                Bottomy.Visibility = Visibility.Visible;
+            else
+                Bottomy.Visibility = Visibility.Collapsed;
+
+            if (faceCentre.Y > viewCentre.Y + 5.0)
+                Toppy.Visibility = Visibility.Visible;
+            else
+                Toppy.Visibility = Visibility.Collapsed;
         }
 
         private Rectangle ConvertPreviewToUiRectangle(BitmapBounds faceBoxInPreviewCoordinates)
