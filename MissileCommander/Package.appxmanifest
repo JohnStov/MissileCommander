@@ -25,5 +25,11 @@
   <Capabilities>
     <DeviceCapability Name="webcam" />
     <DeviceCapability Name="microphone" />
+    <DeviceCapability Name="humaninterfacedevice">
+      <!--Missile Launcher-->
+      <Device Id="vidpid:2123 1010">
+        <Function Type="usage:0001 0010" />
+      </Device>
+    </DeviceCapability>
   </Capabilities>
 </Package>

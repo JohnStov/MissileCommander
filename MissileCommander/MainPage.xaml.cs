@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.Devices.Enumeration;
 using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.Graphics.Display;
 using Windows.Graphics.Imaging;
 using Windows.Media.Capture;
 using Windows.Media.Core;
@@ -19,9 +15,6 @@ using Windows.UI;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using Windows.UI.Xaml.Shapes;
@@ -38,6 +31,13 @@ namespace MissileCommander
         private MediaCapture mediaCapture;
         private readonly DisplayRequest displayRequest = new DisplayRequest();
         private FaceDetectionEffect faceDetectionEffect;
+        private Launcher launcher;
+
+        private bool up = false;
+        private bool down = false;
+        private bool left = false;
+        private bool right = false;
+        private bool visible = false;
 
         public MainPage()
         {
@@ -50,6 +50,15 @@ namespace MissileCommander
         private async void Application_Resuming(object sender, object e)
         {
             await ConfigureCameraAsync();
+            await CreateLauncherAsync();
+        }
+
+        private async Task CreateLauncherAsync()
+        {
+            launcher = await Launcher.CreateAsync();
+            await launcher.SetLightAsync(true);
+            await Task.Delay(1000);
+            await launcher.SetLightAsync(false);
         }
 
         private async void Application_Suspending(object sender, SuspendingEventArgs e)
@@ -59,6 +68,7 @@ namespace MissileCommander
 
         protected override async void OnNavigatedTo(NavigationEventArgs e)
         {
+            await CreateLauncherAsync();
             await ConfigureCameraAsync();
         }
 
@@ -114,11 +124,37 @@ namespace MissileCommander
         private async void FaceDetectionEffect_FaceDetected(FaceDetectionEffect sender, FaceDetectedEventArgs args)
         {
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => HighlightDetectedFaces(args.ResultFrame.DetectedFaces));
+
+            if (launcher == null)
+                return;
+
+            await launcher.SetLightAsync(left | right | up | down);
+
+            if (left)
+                await launcher.MoveLeftAsync(5);
+
+            if (right)
+                await launcher.MoveRightAsync(5);
+
+            if (down)
+                await launcher.MoveDownAsync(5);
+
+            if (up)
+                await launcher.MoveUpAsync(5);
+
+            if (visible && !up && !down && !left && !right)
+                await launcher.FireAsync();
         }
 
         private void HighlightDetectedFaces(IReadOnlyList<DetectedFace> faces)
         {
             FacesCanvas.Children.Clear();
+
+            if (faces.Count == 0)
+            {
+                up = down = right = left = false;
+                visible = false;
+            }
 
             // For each detected face
             for (int i = 0; i < faces.Count; i++)
@@ -149,25 +185,16 @@ namespace MissileCommander
             var faceCentre = new Point(Canvas.GetLeft(faceBoundingBox) + faceBoundingBox.Width / 2,
                      Canvas.GetTop(faceBoundingBox) + faceBoundingBox.Height / 2);
 
-            if (faceCentre.X < viewCentre.X - 5.0)
-                Righty.Visibility = Visibility.Visible;
-            else
-                Righty.Visibility = Visibility.Collapsed;
+            left = faceCentre.X < viewCentre.X - 20.0;
+            right = faceCentre.X > viewCentre.X + 20.0;
+            up = faceCentre.Y < viewCentre.Y - 20.0;
+            down = faceCentre.Y > viewCentre.Y + 20.0;
+            visible = true;
 
-            if (faceCentre.X > viewCentre.X + 5.0)
-                Lefty.Visibility = Visibility.Visible;
-            else
-                Lefty.Visibility = Visibility.Collapsed;
-
-            if (faceCentre.Y < viewCentre.Y - 5.0)
-                Bottomy.Visibility = Visibility.Visible;
-            else
-                Bottomy.Visibility = Visibility.Collapsed;
-
-            if (faceCentre.Y > viewCentre.Y + 5.0)
-                Toppy.Visibility = Visibility.Visible;
-            else
-                Toppy.Visibility = Visibility.Collapsed;
+            Righty.Visibility = right ? Visibility.Visible : Visibility.Collapsed;
+            Lefty.Visibility = left ? Visibility.Visible : Visibility.Collapsed;
+            Bottomy.Visibility = down ? Visibility.Visible : Visibility.Collapsed;
+            Toppy.Visibility = up ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private Rectangle ConvertPreviewToUiRectangle(BitmapBounds faceBoxInPreviewCoordinates)
